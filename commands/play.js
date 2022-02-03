@@ -139,14 +139,14 @@ module.exports = {
         }
       }
       try {
-        if (!server_queue.connection) {
-          const connection = joinVoiceChannel({
-            channelId: message.member.voice.channel.id,
-            guildId: message.guild.id,
-            adapterCreator: message.guild.voiceAdapterCreator,
-          });
-          server_queue.connection = connection;
-        }
+        // if (!server_queue.connection) {
+        const connection = joinVoiceChannel({
+          channelId: message.member.voice.channel.id,
+          guildId: message.guild.id,
+          adapterCreator: message.guild.voiceAdapterCreator,
+        });
+        server_queue.connection = connection;
+        // }
 
         if (!server_queue.audio_player || !server_queue.subscription) {
           video_player(message, server_queue.songs[server_queue.currentSong], queue);
@@ -177,21 +177,21 @@ const video_player = async (message, song, queue) => {
       return;
     }
 
-    if (!server_queue.audio_player) {
-      const player = createAudioPlayer();
-      server_queue.audio_player = player;
-      server_queue.audio_player.on("error", (error) => {
-        console.log(error);
-      });
-      server_queue.audio_player.on(AudioPlayerStatus.Idle, () => {
-        video_player(message, fetchNextSong(server_queue), queue);
-      });
-    }
+    //if (!server_queue.audio_player) {
+    const player = createAudioPlayer();
+    server_queue.audio_player = player;
+    server_queue.audio_player.on("error", (error) => {
+      console.log(error);
+    });
+    server_queue.audio_player.on(AudioPlayerStatus.Idle, () => {
+      video_player(message, fetchNextSong(server_queue), queue);
+    });
+    //}
 
-    if (!server_queue.subscription) {
-      const subscription = getVoiceConnection(guild.id).subscribe(server_queue.audio_player);
-      server_queue.subscription = subscription;
-    }
+    //if (!server_queue.subscription) {
+    const subscription = getVoiceConnection(guild.id).subscribe(server_queue.audio_player);
+    server_queue.subscription = subscription;
+    //}
     const stream = await play.stream(song.url);
 
     let resource = createAudioResource(stream.stream, {
