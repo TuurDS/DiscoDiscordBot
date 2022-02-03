@@ -16,10 +16,6 @@ module.exports = {
 
       let server_queue = queue.get(message.guild.id);
 
-      const channel = message.member.voice.channel;
-      const connection = getVoiceConnection(channel.guild.id);
-      connection.destroy();
-
       server_queue.songs = [];
       safeExit(queue, message.guild.id);
 
