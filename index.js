@@ -1,6 +1,6 @@
 try {
   const Discord = require("discord.js");
-
+  require('dotenv').config();
   const myIntents = new Discord.Intents();
   myIntents.add(
     Discord.Intents.FLAGS.GUILDS,
@@ -19,7 +19,7 @@ try {
     require(`./handlers/${e}`)(client, Discord);
   });
 
-  client.login("OTM2MTYzNTMwMjUwNTIyNjQ1.YfJMOg.blLSkFsmxDLQk1e918vofaa-2Lk");
+  client.login(process.env.DISCORD_TOKEN);
 } catch (error) {
   console.log(error);
 }

@@ -1,8 +1,9 @@
+require('dotenv').config();
 const queue = new Map();
 
 module.exports = (client, Discord, message) => {
   try {
-    const prefix = "?";
+    const prefix = process.env.DISCORD_PREFIX;
     if (!message.content.startsWith(prefix) || message.author.bot) return;
 
     const args = message.content.slice(prefix.length).split(" ");
