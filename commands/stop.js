@@ -31,16 +31,18 @@ module.exports = {
   },
 };
 
-const safeExit = (server_queue) => {
+const safeExit = (queue, guildId) => {
+  const server_queue = queue.get(guildId);
   if (!server_queue) return;
+
+  if (server_queue.audio_player) {
+    server_queue.audio_player.stop();
+    server_queue.audio_player = null;
+  }
 
   if (server_queue.subscription) {
     server_queue.subscription.unsubscribe();
     server_queue.subscription = null;
-  }
-
-  if (server_queue.audio_player) {
-    server_queue.audio_player = null;
   }
 
   if (server_queue.connection) {

@@ -50,21 +50,21 @@ const video_player = async (message, song, queue, seekTo) => {
     return;
   }
 
-  // if (!server_queue.audio_player) {
-  const player = createAudioPlayer();
-  server_queue.audio_player = player;
-  server_queue.audio_player.on("error", (error) => {
-    console.log(error);
-  });
-  server_queue.audio_player.on(AudioPlayerStatus.Idle, () => {
-    video_player(message, fetchNextSong(server_queue), queue);
-  });
-  // }
+  if (!server_queue.audio_player) {
+    const player = createAudioPlayer();
+    server_queue.audio_player = player;
+    server_queue.audio_player.on("error", (error) => {
+      console.log(error);
+    });
+    server_queue.audio_player.on(AudioPlayerStatus.Idle, () => {
+      video_player(message, fetchNextSong(server_queue), queue);
+    });
+  }
 
-  // if (!server_queue.subscription) {
-  const subscription = getVoiceConnection(guild.id).subscribe(server_queue.audio_player);
-  server_queue.subscription = subscription;
-  // }
+  if (!server_queue.subscription) {
+    const subscription = getVoiceConnection(guild.id).subscribe(server_queue.audio_player);
+    server_queue.subscription = subscription;
+  }
 
   server_queue.nowplaying = song;
 
