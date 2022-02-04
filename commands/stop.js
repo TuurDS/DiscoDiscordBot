@@ -16,6 +16,8 @@ module.exports = {
 
       let server_queue = queue.get(message.guild.id);
 
+      server_queue.currentSong = 0;
+
       server_queue.songs = [];
       safeExit(queue, message.guild.id);
 
