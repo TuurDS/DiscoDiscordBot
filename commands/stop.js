@@ -15,7 +15,7 @@ module.exports = {
       if (!permissions.has("SPEAK")) return message.channel.send("You dont have the correct permissions");
 
       let server_queue = queue.get(message.guild.id);
-
+      server_queue.currentSong = 0;
       server_queue.songs = [];
       safeExit(queue, message.guild.id);
 
