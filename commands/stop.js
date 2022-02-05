@@ -1,7 +1,6 @@
 const {
-  getVoiceConnection
-} = require("@discordjs/voice");
-
+  safeExit
+} = require("../functions/functions");
 module.exports = {
   name: "stop",
   description: "bot cleares queue and leaves vc",
@@ -25,24 +24,4 @@ module.exports = {
       message.channel.send("**An Error occurred!**");
     }
   },
-};
-
-const safeExit = (queue, guildId) => {
-  const server_queue = queue.get(guildId);
-  if (!server_queue) return;
-
-  if (server_queue.audio_player) {
-    server_queue.audio_player.stop();
-    server_queue.audio_player = null;
-  }
-
-  if (server_queue.subscription) {
-    server_queue.subscription.unsubscribe();
-    server_queue.subscription = null;
-  }
-
-  if (server_queue.connection) {
-    server_queue.connection.destroy();
-    server_queue.connection = null;
-  }
 };

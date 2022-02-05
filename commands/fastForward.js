@@ -1,10 +1,6 @@
-const play = require("play-dl");
 const {
-  getVoiceConnection,
-  createAudioPlayer,
-  createAudioResource,
-  AudioPlayerStatus
-} = require("@discordjs/voice");
+  video_player
+} = require("../functions/functions");
 
 module.exports = {
   name: "fastforward",
@@ -35,65 +31,4 @@ module.exports = {
       message.channel.send("**An Error occurred!**");
     }
   },
-};
-
-const video_player = async (message, song, queue, seekTo) => {
-  const guild = message.guild;
-  const server_queue = queue.get(guild.id);
-  server_queue.currentOffset = seekTo * 1000;
-
-  if (!song) {
-    server_queue.currentSong = 0;
-    server_queue.songs = [];
-    safeExit(queue, guild.id);
-    message.channel.send(`**no songs left Disco left the voice channel!** 😔`);
-    return;
-  }
-
-  // if (!server_queue.audio_player) {
-  const player = createAudioPlayer();
-  server_queue.audio_player = player;
-  server_queue.audio_player.on("error", (error) => {
-    console.log(error);
-  });
-  server_queue.audio_player.on(AudioPlayerStatus.Idle, () => {
-    video_player(message, fetchNextSong(server_queue), queue);
-  });
-  // }
-
-  // if (!server_queue.subscription) {
-  const subscription = getVoiceConnection(guild.id).subscribe(server_queue.audio_player);
-  server_queue.subscription = subscription;
-  // }
-
-  server_queue.nowplaying = song;
-
-  const stream = await play.stream(song.url, {
-    seek: seekTo,
-  });
-
-  let resource = createAudioResource(stream.stream, {
-    inputType: stream.type,
-  });
-
-  server_queue.audio_player.play(resource);
-};
-const safeExit = (queue, guildId) => {
-  const server_queue = queue.get(guildId);
-  if (!server_queue) return;
-
-  if (server_queue.audio_player) {
-    server_queue.audio_player.stop();
-    server_queue.audio_player = null;
-  }
-
-  if (server_queue.subscription) {
-    server_queue.subscription.unsubscribe();
-    server_queue.subscription = null;
-  }
-
-  if (server_queue.connection) {
-    server_queue.connection.destroy();
-    server_queue.connection = null;
-  }
 };
