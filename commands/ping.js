@@ -1,15 +1,29 @@
+const {
+  sendMessage
+} = require("../functions/functions");
 module.exports = {
   name: "ping",
   description: "this is a ping command!",
   execute(client, message, cmd, args, Discord) {
     try {
-      message.channel.send("Pinging...").then((m) => {
+      let embed1 = new Discord.MessageEmbed()
+        .setColor("GREEN")
+        .setDescription("Pinging...")
+
+      message.channel.send({
+        embeds: [embed1],
+      }).then((m) => {
         var ping = m.createdTimestamp - message.createdTimestamp;
-        m.edit(`**:ping_pong: Pong! Your Ping Is:-** ${ping}ms`);
+        let embed2 = new Discord.MessageEmbed()
+          .setColor("GREEN")
+          .setDescription(`:ping_pong: Pong! Your Ping Is:- **${ping}ms**`)
+        m.edit({
+          embeds: [embed2],
+        });
       });
     } catch (error) {
       console.log(error);
-      message.channel.send("**An Error occurred!**");
+      sendMessage(message.channel, "**an error occurred!**");
     }
   },
 };

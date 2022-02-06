@@ -1,3 +1,6 @@
+const {
+  sendMessage
+} = require("../functions/functions");
 module.exports = {
   name: "repeat",
   description: "toggles repeating the music queue!",
@@ -5,7 +8,7 @@ module.exports = {
     try {
       const voice_channel = message.member.voice.channel;
       if (!voice_channel)
-        return message.channel.send("You need to be in a channel to execute this command!");
+        return sendMessage(message.channel, "You need to be in a channel to execute this command!");
 
       let server_queue = queue.get(message.guild.id);
 
@@ -18,6 +21,10 @@ module.exports = {
           subscription: null,
           repeat: false,
           currentSong: 0,
+          currentOffset: 0,
+          videoErrors: 0,
+          nowplaying: null,
+          previousMessage: null,
           songs: [],
         };
         queue.set(message.guild.id, queue_constructor);
@@ -27,14 +34,14 @@ module.exports = {
 
       if (!server_queue.repeat) {
         server_queue.repeat = true;
-        message.channel.send("repeating enabled!");
+        sendMessage(message.channel, "repeating **enabled**", "GREEN");
       } else {
         server_queue.repeat = false;
-        message.channel.send("repeating disabled!");
+        sendMessage(message.channel, "repeating **disabled**", "GREEN");
       }
     } catch (error) {
       console.log(error);
-      message.channel.send("**An Error occurred!**");
+      sendMessage(message.channel, "**an error occurred!**");
     }
   },
 };

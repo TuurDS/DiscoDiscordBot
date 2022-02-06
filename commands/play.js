@@ -3,12 +3,12 @@ const ytSearch = require("yt-search");
 const play = require("play-dl");
 const {
   joinVoiceChannel,
-  getVoiceConnection,
-  createAudioPlayer,
-  createAudioResource,
-  AudioPlayerStatus,
 } = require("@discordjs/voice");
-
+const {
+  video_player,
+  safeExit,
+  sendMessage
+} = require("../functions/functions");
 module.exports = {
   name: "play",
   aliases: ["p"],
@@ -17,17 +17,18 @@ module.exports = {
   async execute(client, message, cmd, args, Discord, queue) {
     try {
       const voice_channel = message.member.voice.channel;
-      if (!voice_channel) return message.channel.send("You need to be in a channel to execute this command!");
+      if (!voice_channel) return sendMessage(message.channel, "You need to be in a channel to execute this command!");
       const permissions = voice_channel.permissionsFor(message.client.user);
-      if (!permissions.has("CONNECT")) return message.channel.send("You dont have the correct permissions");
-      if (!permissions.has("SPEAK")) return message.channel.send("You dont have the correct permissions");
+      if (!permissions.has("CONNECT")) return sendMessage(message.channel, "You dont have the correct permissions");
+      if (!permissions.has("SPEAK")) return sendMessage(message.channel, "You dont have the correct permissions");
 
       let server_queue = queue.get(message.guild.id);
 
-      if (!args.length) return message.channel.send("You need to send the second argument!");
+      if (!args.length) return sendMessage(message.channel, "You need to send a second argument!");
       let song = {};
       let fullPlaylist = [];
       let playlistTitle = {};
+      let playlistUrl = "";
 
       if (isValidHttpUrl(args[0])) {
         if (play.yt_validate(args[0]) === "video") {
@@ -56,6 +57,7 @@ module.exports = {
             });
           }
           playlistTitle = playlist.title;
+          playlistUrl = playlist.url;
 
           for (const video of playlist.videos) {
             let thumbnail = "";
@@ -78,7 +80,7 @@ module.exports = {
             fullPlaylist.push(song);
           }
         } else {
-          return message.channel.send("Cannot load this type of url!");
+          return sendMessage(message.channel, "Cannot load this type of url!");
         }
       } else {
         const video_finder = async (query) => {
@@ -103,7 +105,7 @@ module.exports = {
             requested: message.author.username + "#" + message.author.discriminator,
           };
         } else {
-          return message.channel.send("Error finding video.");
+          return sendMessage(message.channel, "Error finding video.");
         }
       }
       if (!server_queue) {
@@ -116,26 +118,28 @@ module.exports = {
           repeat: false,
           currentSong: 0,
           currentOffset: 0,
+          videoErrors: 0,
           nowplaying: null,
+          previousMessage: null,
           songs: [],
         };
         queue.set(message.guild.id, queue_constructor);
         server_queue = queue.get(message.guild.id);
         if (play.yt_validate(args[0]) === "playlist") {
           server_queue.songs = server_queue.songs.concat(fullPlaylist);
-          message.channel.send(`👍 **Playlist ${playlistTitle} with \`${fullPlaylist.length}\`** songs added to queue!`);
+          sendMessage(message.channel, `👍 Playlist [${playlistTitle}](${playlistUrl}) with **\`${fullPlaylist.length}\`** songs added to queue!`, "GREEN");
         } else {
           server_queue.songs.push(song);
-          message.channel.send(`👍 **${song.title}** added to queue!`);
+          sendMessage(message.channel, `👍 **[${song.title}](${song.url})** added to queue!`, "GREEN");
         }
         server_queue = queue.get(message.guild.id);
       } else {
         if (play.yt_validate(args[0]) === "playlist") {
           server_queue.songs = server_queue.songs.concat(fullPlaylist);
-          message.channel.send(`👍 **Playlist ${playlistTitle} with \`${fullPlaylist.length}\`** songs added to queue!`);
+          endMessage(message.channel, `👍 Playlist [${playlistTitle}](${playlistUrl}) with **\`${fullPlaylist.length}\`** songs added to queue!`, "GREEN");
         } else {
           server_queue.songs.push(song);
-          message.channel.send(`👍 **${song.title}** added to queue!`);
+          sendMessage(message.channel, `👍 **[${song.title}](${song.url})** added to queue!`, "GREEN");
         }
       }
       try {
@@ -153,91 +157,14 @@ module.exports = {
         }
       } catch (error) {
         safeExit(queue, message.guild.id);
-        message.channel.send("There was an error connecting!");
+        sendMessage(message.channel, "There was an error connecting!");
         console.log(error);
       }
     } catch (error) {
       console.log(error);
-      message.channel.send("**An Error occurred!**");
+      sendMessage(message.channel, "**an error occurred!**");
     }
   },
-};
-
-const video_player = async (message, song, queue) => {
-  try {
-    const guild = message.guild;
-    const server_queue = queue.get(guild.id);
-    server_queue.currentOffset = 0;
-
-    if (!song) {
-      server_queue.currentSong = 0;
-      server_queue.songs = [];
-      safeExit(queue, guild.id);
-      message.channel.send(`**no songs left Disco left the voice channel!** 😔`);
-      return;
-    }
-    if (!server_queue.audio_player) {
-      const player = createAudioPlayer();
-      server_queue.audio_player = player;
-      server_queue.audio_player.on("error", (error) => {
-        console.log(error);
-      });
-      server_queue.audio_player.on(AudioPlayerStatus.Idle, () => {
-        video_player(message, fetchNextSong(server_queue), queue);
-      })
-    }
-    if (!server_queue.subscription) {
-      const subscription = getVoiceConnection(guild.id).subscribe(server_queue.audio_player);
-      server_queue.subscription = subscription
-    }
-    const stream = await play.stream(song.url);
-
-    let resource = createAudioResource(stream.stream, {
-      inputType: stream.type,
-    });
-
-    server_queue.audio_player.play(resource);
-
-    server_queue.nowplaying = song;
-    server_queue.text_channel.send(`🎶 Now playing **${song.title} [${server_queue.currentSong + 1}]**`);
-  } catch (error) {
-    console.log("an error has occurred!");
-    message.channel.send("an error has occurred!");
-  }
-};
-
-const safeExit = (queue, guildId) => {
-  const server_queue = queue.get(guildId);
-  if (!server_queue) return;
-
-  if (server_queue.audio_player) {
-    server_queue.audio_player.stop();
-    server_queue.audio_player = null;
-  }
-
-  if (server_queue.subscription) {
-    server_queue.subscription.unsubscribe();
-    server_queue.subscription = null;
-  }
-
-  if (server_queue.connection) {
-    server_queue.connection.destroy();
-    server_queue.connection = null;
-  }
-};
-
-const fetchNextSong = (server_queue) => {
-  if (!server_queue) return null;
-
-  if (
-    server_queue.repeat &&
-    server_queue.currentSong >= server_queue.songs.length - 1
-  ) {
-    server_queue.currentSong = 0;
-  } else {
-    server_queue.currentSong += 1;
-  }
-  return server_queue.songs[server_queue.currentSong];
 };
 
 function isValidHttpUrl(string) {

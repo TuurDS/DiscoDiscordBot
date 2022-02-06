@@ -1,7 +1,6 @@
-//deploy branch
+const Discord = require("discord.js");
+require('dotenv').config();
 try {
-  const Discord = require("discord.js");
-  require('dotenv').config();
   const myIntents = new Discord.Intents();
   myIntents.add(
     Discord.Intents.FLAGS.GUILDS,
