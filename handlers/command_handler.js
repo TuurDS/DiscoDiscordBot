@@ -16,6 +16,5 @@ module.exports = (client, Discord) => {
     }
   } catch (error) {
     console.log(error);
-    message.channel.send("**An Error occurred!**");
   }
 };

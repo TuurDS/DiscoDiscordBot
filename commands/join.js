@@ -1,7 +1,9 @@
 const {
   joinVoiceChannel
 } = require("@discordjs/voice");
-
+const {
+  sendMessage
+} = require("../functions/functions");
 module.exports = {
   name: "join",
   description: "bot join vc",
@@ -9,12 +11,12 @@ module.exports = {
     try {
       const voiceChannel = message.member.voice.channel;
 
-      if (!voiceChannel) return message.channel.send("You need to be in a channel to execute this command!");
+      if (!voiceChannel) return sendMessage(message.channel, "You need to be in a channel to execute this command!");
 
       const permissions = voiceChannel.permissionsFor(message.client.user);
 
-      if (!permissions.has("CONNECT")) return message.channel.send("You dont have the correct permissions");
-      if (!permissions.has("SPEAK")) return message.channel.send("You dont have the correct permissions");
+      if (!permissions.has("CONNECT")) return sendMessage(message.channel, "You dont have the correct permissions");
+      if (!permissions.has("SPEAK")) return sendMessage(message.channel, "You dont have the correct permissions");
 
       const connection = joinVoiceChannel({
         channelId: voiceChannel.id,
@@ -24,7 +26,7 @@ module.exports = {
 
     } catch (error) {
       console.log(error);
-      message.channel.send("**An Error occurred!**");
+      sendMessage(message.channel, "**an error occurred!**");
     }
   },
 };

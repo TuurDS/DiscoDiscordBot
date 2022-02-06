@@ -16,6 +16,5 @@ module.exports = (client, Discord) => {
     ["client", "guild"].forEach((e) => load_dir(e));
   } catch (error) {
     console.log(error);
-    message.channel.send("**An Error occurred!**");
   }
 };

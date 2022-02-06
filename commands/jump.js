@@ -1,5 +1,6 @@
 const {
-  video_player
+  video_player,
+  sendMessage
 } = require("../functions/functions");
 module.exports = {
   name: "jump",
@@ -8,41 +9,41 @@ module.exports = {
     try {
       const voice_channel = message.member.voice.channel;
       if (!voice_channel)
-        return message.channel.send(
+        return sendMessage(message.channel,
           "You need to be in a channel to execute this command!"
         );
       const permissions = voice_channel.permissionsFor(message.client.user);
       if (!permissions.has("CONNECT"))
-        return message.channel.send("You dont have the correct permissions");
+        return sendMessage(message.channel, "You dont have the correct permissions");
       if (!permissions.has("SPEAK"))
-        return message.channel.send("You dont have the correct permissions");
+        return sendMessage(message.channel, "You dont have the correct permissions");
 
       let server_queue = queue.get(message.guild.id);
       if (!message.member.voice.channel)
-        return message.channel.send(
+        return sendMessage(message.channel,
           "You need to be in a channel to execute this command!"
         );
       if (!server_queue || !server_queue.songs) {
-        return message.channel.send(`There are no songs in queue 😔`);
+        return sendMessage(message.channel, `There are no songs in queue 😔`);
       }
-      if (isNaN(args[0])) return message.reply("please enter a valid number!");
+      if (isNaN(args[0])) return sendMessage(message.channel, "please enter a valid number!");
       args[0] = parseInt(args[0]);
       if (args[0] < 1 || args[0] > server_queue.songs.length)
-        return message.reply(
-          `please enter a number between 1 and ${server_queue.songs.length}!`
+        return sendMessage(message.channel,
+          `please enter a number between **1** and **${server_queue.songs.length}**`
         );
 
       server_queue.currentSong = args[0] - 1;
 
-      message.channel.send(
-        `**jumped to track ${args[0]} ${
+      sendMessage(message.channel,
+        `jumped to track **${args[0]}** [${
           server_queue.songs[args[0] - 1].title
-        }**`
+        }](${server_queue.songs[args[0] - 1].url})`, "GREEN"
       );
       video_player(message, fetchNextSong(server_queue), queue);
     } catch (error) {
       console.log(error);
-      message.channel.send("**An Error occurred!**");
+      sendMessage(message.channel, "**an error occurred!**");
     }
   },
 };

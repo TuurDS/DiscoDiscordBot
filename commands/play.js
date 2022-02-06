@@ -6,7 +6,8 @@ const {
 } = require("@discordjs/voice");
 const {
   video_player,
-  safeExit
+  safeExit,
+  sendMessage
 } = require("../functions/functions");
 module.exports = {
   name: "play",
@@ -16,17 +17,18 @@ module.exports = {
   async execute(client, message, cmd, args, Discord, queue) {
     try {
       const voice_channel = message.member.voice.channel;
-      if (!voice_channel) return message.channel.send("You need to be in a channel to execute this command!");
+      if (!voice_channel) return sendMessage(message.channel, "You need to be in a channel to execute this command!");
       const permissions = voice_channel.permissionsFor(message.client.user);
-      if (!permissions.has("CONNECT")) return message.channel.send("You dont have the correct permissions");
-      if (!permissions.has("SPEAK")) return message.channel.send("You dont have the correct permissions");
+      if (!permissions.has("CONNECT")) return sendMessage(message.channel, "You dont have the correct permissions");
+      if (!permissions.has("SPEAK")) return sendMessage(message.channel, "You dont have the correct permissions");
 
       let server_queue = queue.get(message.guild.id);
 
-      if (!args.length) return message.channel.send("You need to send the second argument!");
+      if (!args.length) return sendMessage(message.channel, "You need to send a second argument!");
       let song = {};
       let fullPlaylist = [];
       let playlistTitle = {};
+      let playlistUrl = "";
 
       if (isValidHttpUrl(args[0])) {
         if (play.yt_validate(args[0]) === "video") {
@@ -55,6 +57,7 @@ module.exports = {
             });
           }
           playlistTitle = playlist.title;
+          playlistUrl = playlist.url;
 
           for (const video of playlist.videos) {
             let thumbnail = "";
@@ -77,7 +80,7 @@ module.exports = {
             fullPlaylist.push(song);
           }
         } else {
-          return message.channel.send("Cannot load this type of url!");
+          return sendMessage(message.channel, "Cannot load this type of url!");
         }
       } else {
         const video_finder = async (query) => {
@@ -102,7 +105,7 @@ module.exports = {
             requested: message.author.username + "#" + message.author.discriminator,
           };
         } else {
-          return message.channel.send("Error finding video.");
+          return sendMessage(message.channel, "Error finding video.");
         }
       }
       if (!server_queue) {
@@ -115,26 +118,28 @@ module.exports = {
           repeat: false,
           currentSong: 0,
           currentOffset: 0,
+          videoErrors: 0,
           nowplaying: null,
+          previousMessage: null,
           songs: [],
         };
         queue.set(message.guild.id, queue_constructor);
         server_queue = queue.get(message.guild.id);
         if (play.yt_validate(args[0]) === "playlist") {
           server_queue.songs = server_queue.songs.concat(fullPlaylist);
-          message.channel.send(`👍 **Playlist ${playlistTitle} with \`${fullPlaylist.length}\`** songs added to queue!`);
+          sendMessage(message.channel, `👍 Playlist [${playlistTitle}](${playlistUrl}) with **\`${fullPlaylist.length}\`** songs added to queue!`, "GREEN");
         } else {
           server_queue.songs.push(song);
-          message.channel.send(`👍 **${song.title}** added to queue!`);
+          sendMessage(message.channel, `👍 **[${song.title}](${song.url})** added to queue!`, "GREEN");
         }
         server_queue = queue.get(message.guild.id);
       } else {
         if (play.yt_validate(args[0]) === "playlist") {
           server_queue.songs = server_queue.songs.concat(fullPlaylist);
-          message.channel.send(`👍 **Playlist ${playlistTitle} with \`${fullPlaylist.length}\`** songs added to queue!`);
+          endMessage(message.channel, `👍 Playlist [${playlistTitle}](${playlistUrl}) with **\`${fullPlaylist.length}\`** songs added to queue!`, "GREEN");
         } else {
           server_queue.songs.push(song);
-          message.channel.send(`👍 **${song.title}** added to queue!`);
+          sendMessage(message.channel, `👍 **[${song.title}](${song.url})** added to queue!`, "GREEN");
         }
       }
       try {
@@ -152,12 +157,12 @@ module.exports = {
         }
       } catch (error) {
         safeExit(queue, message.guild.id);
-        message.channel.send("There was an error connecting!");
+        sendMessage(message.channel, "There was an error connecting!");
         console.log(error);
       }
     } catch (error) {
       console.log(error);
-      message.channel.send("**An Error occurred!**");
+      sendMessage(message.channel, "**an error occurred!**");
     }
   },
 };

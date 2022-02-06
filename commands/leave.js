@@ -2,7 +2,8 @@ const {
   getVoiceConnection
 } = require("@discordjs/voice");
 const {
-  safeExit
+  safeExit,
+  sendMessage
 } = require("../functions/functions");
 module.exports = {
   name: "leave",
@@ -14,7 +15,7 @@ module.exports = {
       safeExit(queue, message.guild.id);
     } catch (error) {
       console.log(error);
-      message.channel.send("**An Error occurred!**");
+      sendMessage(message.channel, "**an error occurred!**");
     }
   },
 };

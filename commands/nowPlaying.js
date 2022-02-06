@@ -1,5 +1,7 @@
 const format = require("format-duration");
-
+const {
+  sendMessage
+} = require("../functions/functions");
 module.exports = {
   name: "nowplaying",
   aliases: ["np"],
@@ -11,7 +13,7 @@ module.exports = {
       const song = server_queue.nowplaying;
 
       if (!server_queue || server_queue.connection == null || song == null) {
-        return message.channel.send("**no song is currently playing!**");
+        return sendMessage(message.channel, "**no song is currently playing!**");
       }
 
       const playbackTimeString = format(server_queue.audio_player._state.resource.playbackDuration + server_queue.currentOffset);
@@ -31,7 +33,7 @@ module.exports = {
           url: song.author.url,
           iconURL: song.author.thumbnail,
         })
-        .setColor("RED")
+        .setColor("ORANGE")
         .setTitle(song.title)
         .setURL(song.url)
         .setThumbnail(song.thumbnail)
@@ -55,7 +57,7 @@ module.exports = {
       });
     } catch (error) {
       console.log(error);
-      message.channel.send("**An Error occurred!**");
+      sendMessage(message.channel, "**an error occurred!**");
     }
   },
 };
