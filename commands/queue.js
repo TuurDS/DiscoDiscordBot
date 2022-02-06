@@ -110,10 +110,6 @@ module.exports = {
   },
 };
 
-function sendQueueEmbedWithButtons(embed) {
-
-}
-
 function getQueueEmbed(server_queue, PageIndex) {
   startIndex = PageIndex * 10 - 10;
   endIndex = PageIndex * 10 - 1;
@@ -127,8 +123,10 @@ function getQueueEmbed(server_queue, PageIndex) {
 function createEmbed(string, color) {
   let embed = new Discord.MessageEmbed()
     .setColor(color)
-    .setDescription(string);
-
+    .setDescription(string)
+    .setFooter({
+      text: "This message will stop interacting after 5 minutes."
+    })
   return embed;
 }
 
