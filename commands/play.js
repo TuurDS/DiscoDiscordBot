@@ -136,7 +136,7 @@ module.exports = {
       } else {
         if (play.yt_validate(args[0]) === "playlist") {
           server_queue.songs = server_queue.songs.concat(fullPlaylist);
-          endMessage(message.channel, `👍 Playlist [${playlistTitle}](${playlistUrl}) with **\`${fullPlaylist.length}\`** songs added to queue!`, "GREEN");
+          sendMessage(message.channel, `👍 Playlist [${playlistTitle}](${playlistUrl}) with **\`${fullPlaylist.length}\`** songs added to queue!`, "GREEN");
         } else {
           server_queue.songs.push(song);
           sendMessage(message.channel, `👍 **[${song.title}](${song.url})** added to queue!`, "GREEN");
