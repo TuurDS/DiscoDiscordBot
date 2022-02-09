@@ -114,7 +114,11 @@ module.exports = {
           repeat: false,
           currentSong: 0,
           currentOffset: 0,
-          videoErrors: 0,
+          errors: {
+            count: 0,
+            previousInARowMessage: null,
+            responseDataErrorCount: 0,
+          },
           nowplaying: null,
           previousMessage: null,
           songs: [],
@@ -131,6 +135,9 @@ module.exports = {
         }
         server_queue = queue.get(message.guild.id);
       } else {
+        server_queue.voice_channel = voice_channel;
+        server_queue.text_channel = message.channel;
+
         if (play.yt_validate(args[0]) === "playlist") {
           server_queue.songs = server_queue.songs.concat(fullPlaylist);
           PlaylistLoadingMessage.delete();
@@ -151,7 +158,7 @@ module.exports = {
         }
 
         if (!server_queue.audio_player || !server_queue.subscription) {
-          video_player(message, server_queue.songs[server_queue.currentSong], queue);
+          video_player(client, message, server_queue.songs[server_queue.currentSong], queue);
         }
       } catch (error) {
         safeExit(queue, message.guild.id);

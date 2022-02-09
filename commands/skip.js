@@ -16,15 +16,19 @@ module.exports = {
 
       let server_queue = queue.get(message.guild.id);
       if (!message.member.voice.channel) return sendMessage(message.channel, "You need to be in a channel to execute this command!");
-      if (!server_queue || !server_queue.songs) {
-        return sendMessage(message.channel, `There are no songs in queue 😔`);
+      if (server_queue && server_queue.nowplaying == null) {
+        if (!server_queue || !server_queue.songs || server_queue.songs.length == 0) {
+          return sendMessage(message.channel, `There are no songs in queue 😔`);
+        }
       }
       if (!args[0]) {
         args[0] = 1;
       }
       if (isNaN(args[0])) return sendMessage(message.channel, "please enter a valid number!");
       args[0] = parseInt(args[0]);
-      if (args[0] < 1 || args[0] > server_queue.songs.length) return sendMessage(message.channel, `please enter a number between **1** and **${server_queue.songs.length}**`);
+      let length = server_queue.songs.length;
+      if (length == 0) length = 1;
+      if (args[0] < 1 || args[0] > length) return sendMessage(message.channel, `please enter a number between **1** and **${length}**`);
 
       let total = server_queue.currentSong + args[0];
 
@@ -35,7 +39,7 @@ module.exports = {
       let str = "songs";
       if (args[0] < 2) str = "song";
       sendMessage(message.channel, `Skipped **${args[0]} ${str}**`, "GREEN");
-      video_player(message, fetchNextSong(server_queue), queue);
+      video_player(client, message, fetchNextSong(server_queue), queue);
     } catch (error) {
       console.log(error);
       sendMessage(message.channel, "**an error occurred!**");

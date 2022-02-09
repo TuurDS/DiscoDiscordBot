@@ -40,7 +40,7 @@ module.exports = {
           server_queue.songs[args[0] - 1].title
         }](${server_queue.songs[args[0] - 1].url})`, "GREEN"
       );
-      video_player(message, fetchNextSong(server_queue), queue);
+      video_player(client, message, fetchNextSong(server_queue), queue);
     } catch (error) {
       console.log(error);
       sendMessage(message.channel, "**an error occurred!**");

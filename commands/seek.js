@@ -19,7 +19,7 @@ module.exports = {
             if (args[0] < 0 || args[0] > server_queue.songs[server_queue.currentSong].duration / 1000 - 1)
                 return sendMessage(message.channel, `please enter a number between **0** and **${server_queue.songs[server_queue.currentSong].duration / 1000 - 1}**`);
 
-            video_player(message, server_queue.songs[server_queue.currentSong], queue, parseInt(args[0]));
+            video_player(client, message, server_queue.songs[server_queue.currentSong], queue, parseInt(args[0]));
             sendMessage(message.channel, `seeked to **${parseInt(args[0])}** seconds!`, "GREEN");
         } catch (error) {
             console.log(error);
