@@ -22,7 +22,11 @@ module.exports = {
           repeat: false,
           currentSong: 0,
           currentOffset: 0,
-          videoErrors: 0,
+          errors: {
+            count: 0,
+            previousInARowMessage: null,
+            responseDataErrorCount: 0,
+          },
           nowplaying: null,
           previousMessage: null,
           songs: [],

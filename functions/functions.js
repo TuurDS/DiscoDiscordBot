@@ -26,6 +26,26 @@ const safeExit = (queue, guildId) => {
             server_queue.connection.destroy();
             server_queue.connection = null;
         }
+
+        const queue_constructor = {
+            voice_channel: null,
+            text_channel: null,
+            connection: null,
+            audio_player: null,
+            subscription: null,
+            repeat: server_queue.repeat,
+            currentSong: 0,
+            currentOffset: 0,
+            errors: {
+                count: 0,
+                previousInARowMessage: null,
+                responseDataErrorCount: 0,
+            },
+            nowplaying: null,
+            previousMessage: null,
+            songs: [],
+        };
+        queue.set(guildId, queue_constructor);
     } catch (error) {
         console.error("error in functions safeExit\n\n", error);
         sendMessage(message.channel, "an error occurred!");
@@ -51,7 +71,7 @@ const fetchNextSong = (server_queue) => {
     }
 };
 
-const video_player = async (message, song, queue, seekTo = -1) => {
+const video_player = async (client, message, song, queue, seekTo = -1) => {
     try {
         let withSeek = true;
         if (seekTo == -1) {
@@ -78,7 +98,7 @@ const video_player = async (message, song, queue, seekTo = -1) => {
                 console.log(error);
             });
             server_queue.audio_player.on(AudioPlayerStatus.Idle, () => {
-                video_player(message, fetchNextSong(server_queue), queue);
+                video_player(client, message, fetchNextSong(server_queue), queue);
             });
         }
 
@@ -88,8 +108,6 @@ const video_player = async (message, song, queue, seekTo = -1) => {
             );
             server_queue.subscription = subscription;
         }
-
-
         const stream = await play.stream(song.url, {
             seek: seekTo,
         });
@@ -108,20 +126,49 @@ const video_player = async (message, song, queue, seekTo = -1) => {
             const msg = await sendMessage(server_queue.text_channel, `🎶 Now playing **[${server_queue.currentSong + 1}]**  [${song.title}](${song.url})`, "ORANGE");
             server_queue.previousMessage = msg;
         }
-
+        server_queue.errors.count = 0;
+        server_queue.errors.responseDataErrorCount = 0;
     } catch (error) {
         server_queue = queue.get(message.guild.id);
-        if (server_queue.videoErrors >= 5) {
-            sendMessage(message.channel, "fatal error occurred cannot skip!");
-            server_queue.videoErrors = 0;
+
+        server_queue.errors.responseDataErrorCount++;
+        if (server_queue.errors.responseDataErrorCount <= 5) {
+            video_player(client, message, song, queue);
         } else {
-            server_queue.videoErrors++;
-            sendMessage(message.channel, "an error with this video occurred, Trying to skip!");
-            video_player(message, fetchNextSong(queue.get(message.guild.id)), queue);
+            server_queue.errors.responseDataErrorCount = 0;
+            if (server_queue.errors.count > 0) {
+                server_queue.errors.count++;
+                server_queue.errors.previousInARowMessage.delete();
+                server_queue.errors.previousInARowMessage = await sendMessage(message.channel, `an error with **${server_queue.errors.count}** videos in a row occurred, Trying to skip !`);
+                console.log("error in functions video_player\n", error);
+                sendErrorMessage(client, `**[${server_queue.currentSong}]** [${server_queue.songs[server_queue.currentSong+1].title}](${server_queue.songs[server_queue.currentSong].url}):\n${error}`);
+            } else {
+                server_queue.errors.count++;
+                server_queue.errors.previousInARowMessage = await sendMessage(message.channel, `an error with **${server_queue.errors.count}** video in a row occurred, Trying to skip !`);
+                console.log("error in functions video_player\n", error);
+                sendErrorMessage(client, `**[${server_queue.currentSong}]** [${server_queue.songs[server_queue.currentSong+1].title}](${server_queue.songs[server_queue.currentSong].url}):\n${error}`);
+            }
+            video_player(client, message, fetchNextSong(queue.get(message.guild.id)), queue);
         }
-        console.error("error in functions video_player\n\n", error);
     }
 };
+
+const sendErrorMessage = async (client, returnMessage, color = "F70000") => {
+    try {
+        let channel = client.channels.cache.get("940729631986827336");
+        let embed = new Discord.MessageEmbed()
+            .setTitle("ERROR")
+            .setColor(color)
+            .setDescription(returnMessage)
+
+        const message = await channel.send({
+            embeds: [embed],
+        });
+        return message;
+    } catch (error) {
+        console.error("error in functions sendMessage\n\n", error);
+    }
+}
 
 const sendMessage = async (channel, returnMessage, color = "F70000") => {
     try {

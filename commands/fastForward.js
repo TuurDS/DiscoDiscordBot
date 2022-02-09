@@ -24,7 +24,7 @@ module.exports = {
         offset = server_queue.songs[server_queue.currentSong].duration / 1000 - 1;
       }
 
-      video_player(message, server_queue.songs[server_queue.currentSong], queue, offset);
+      video_player(client, message, server_queue.songs[server_queue.currentSong], queue, offset);
       sendMessage(message.channel, `fastforwarded **${parseInt(args[0])}** seconds!`, "GREEN");
 
     } catch (error) {

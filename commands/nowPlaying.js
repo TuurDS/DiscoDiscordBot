@@ -2,6 +2,8 @@ const format = require("format-duration");
 const {
   sendMessage
 } = require("../functions/functions");
+const ytdl = require("ytdl-core");
+const play = require("play-dl");
 module.exports = {
   name: "nowplaying",
   aliases: ["np"],
@@ -14,6 +16,11 @@ module.exports = {
 
       if (!server_queue || server_queue.connection == null || song == null) {
         return sendMessage(message.channel, "**no song is currently playing!**");
+      }
+      if (!song.description || !song.author.thumbnail) {
+        const song_info = await play.video_basic_info(song.url);
+        song.description = song_info.video_details.description || "No description available";
+        song.author.thumbnail = song_info.video_details.channel.icons[0].url;
       }
 
       const playbackTimeString = format(server_queue.audio_player._state.resource.playbackDuration + server_queue.currentOffset);

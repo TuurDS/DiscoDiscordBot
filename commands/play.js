@@ -1,3 +1,4 @@
+const ytfps = require('ytfps');
 const ytdl = require("ytdl-core");
 const ytSearch = require("yt-search");
 const play = require("play-dl");
@@ -29,11 +30,11 @@ module.exports = {
       let fullPlaylist = [];
       let playlistTitle = {};
       let playlistUrl = "";
+      let PlaylistLoadingMessage = null;
 
       if (isValidHttpUrl(args[0])) {
         if (play.yt_validate(args[0]) === "video") {
           const song_info = await ytdl.getInfo(args[0]);
-
           song = {
             title: song_info.videoDetails.title,
             duration: parseInt(song_info.videoDetails.lengthSeconds) * 1000,
@@ -48,38 +49,33 @@ module.exports = {
             requested: message.author.username + "#" + message.author.discriminator,
           };
         } else if (play.yt_validate(args[0]) === "playlist") {
-          let playlist = await play.playlist_info(args[0], {
-            incomplete: true,
-          });
-          if (args[0].includes("playlist") && playlist.link) {
-            playlist = await play.playlist_info(playlist.link, {
-              incomplete: true,
-            });
-          }
+          PlaylistLoadingMessage = await sendMessage(message.channel, "Playlist loading...", "ORANGE");
+          let playlist = await ytfps(args[0]);
           playlistTitle = playlist.title;
           playlistUrl = playlist.url;
 
           for (const video of playlist.videos) {
-            let thumbnail = "";
-            if (video.thumbnails) {
-              thumbnail = video.thumbnails[0].url || "";
+            try {
+              song = {
+                title: video.title,
+                duration: video.milis_length,
+                description: "",
+                url: video.url,
+                thumbnail: video.thumbnail_url,
+                author: {
+                  url: video.author.url,
+                  name: video.author.name,
+                  thumbnail: "",
+                },
+                requested: message.author.username + "#" + message.author.discriminator,
+              };
+              fullPlaylist.push(song);
+            } catch (error) {
+              continue;
             }
-            song = {
-              title: video.title,
-              duration: video.durationInSec * 1000,
-              description: "wasnt able to fetch!",
-              url: video.url,
-              thumbnail: thumbnail,
-              author: {
-                url: video.channel.url,
-                name: video.channel.name,
-                thumbnail: thumbnail,
-              },
-              requested: message.author.username + "#" + message.author.discriminator,
-            };
-            fullPlaylist.push(song);
           }
         } else {
+
           return sendMessage(message.channel, "Cannot load this type of url!");
         }
       } else {
@@ -118,7 +114,11 @@ module.exports = {
           repeat: false,
           currentSong: 0,
           currentOffset: 0,
-          videoErrors: 0,
+          errors: {
+            count: 0,
+            previousInARowMessage: null,
+            responseDataErrorCount: 0,
+          },
           nowplaying: null,
           previousMessage: null,
           songs: [],
@@ -127,6 +127,7 @@ module.exports = {
         server_queue = queue.get(message.guild.id);
         if (play.yt_validate(args[0]) === "playlist") {
           server_queue.songs = server_queue.songs.concat(fullPlaylist);
+          PlaylistLoadingMessage.delete();
           sendMessage(message.channel, `👍 Playlist [${playlistTitle}](${playlistUrl}) with **\`${fullPlaylist.length}\`** songs added to queue!`, "GREEN");
         } else {
           server_queue.songs.push(song);
@@ -134,8 +135,12 @@ module.exports = {
         }
         server_queue = queue.get(message.guild.id);
       } else {
+        server_queue.voice_channel = voice_channel;
+        server_queue.text_channel = message.channel;
+
         if (play.yt_validate(args[0]) === "playlist") {
           server_queue.songs = server_queue.songs.concat(fullPlaylist);
+          PlaylistLoadingMessage.delete();
           sendMessage(message.channel, `👍 Playlist [${playlistTitle}](${playlistUrl}) with **\`${fullPlaylist.length}\`** songs added to queue!`, "GREEN");
         } else {
           server_queue.songs.push(song);
@@ -153,7 +158,7 @@ module.exports = {
         }
 
         if (!server_queue.audio_player || !server_queue.subscription) {
-          video_player(message, server_queue.songs[server_queue.currentSong], queue);
+          video_player(client, message, server_queue.songs[server_queue.currentSong], queue);
         }
       } catch (error) {
         safeExit(queue, message.guild.id);
