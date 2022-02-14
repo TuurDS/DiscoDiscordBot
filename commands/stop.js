@@ -15,10 +15,11 @@ module.exports = {
       if (!permissions.has("SPEAK")) return sendMessage(message.channel, "You dont have the correct permissions");
 
       let server_queue = queue.get(message.guild.id);
+      if (!server_queue) return sendMessage(message.channel, "Queue already gone!");
 
       server_queue.currentSong = 0;
-
       server_queue.songs = [];
+
       safeExit(queue, message.guild.id);
 
       sendMessage(message.channel, `Queue cleared and Disco left the voice channel 😔!`, "GREEN");
