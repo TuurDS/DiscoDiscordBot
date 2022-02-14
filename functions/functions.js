@@ -115,6 +115,7 @@ const video_player = async (client, message, song, queue, seekTo = -1) => {
         let resource = createAudioResource(stream.stream, {
             inputType: stream.type,
         });
+        //throw Error("testing error bug");
 
         server_queue.audio_player.play(resource);
 
@@ -128,8 +129,9 @@ const video_player = async (client, message, song, queue, seekTo = -1) => {
         }
         server_queue.errors.count = 0;
         server_queue.errors.responseDataErrorCount = 0;
+
     } catch (error) {
-        server_queue = queue.get(message.guild.id);
+        let server_queue = queue.get(message.guild.id);
 
         server_queue.errors.responseDataErrorCount++;
         if (server_queue.errors.responseDataErrorCount <= 5) {
