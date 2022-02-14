@@ -3,7 +3,7 @@
 you can add the bot by using this link and then and then authorizing the bot to the server you want.
 https://discord.com/oauth2/authorize?client_id=936163530250522645&scope=bot&permissions=8
 ## Using the Bot
-The discord bot is listening to the prefix -
+The discord bot is listening to the prefix "-".
 these are all the commands currently in use type -help in any chat to see all the commands.
 
 ```
