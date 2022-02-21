@@ -50,40 +50,73 @@ module.exports = {
           };
         } else if (play.yt_validate(args[0]) === "playlist") {
           PlaylistLoadingMessage = await sendMessage(message.channel, "Playlist loading...", "ORANGE");
-          let playlist = await ytfps(args[0]);
-          playlistTitle = playlist.title;
-          playlistUrl = playlist.url;
-
-          for (const video of playlist.videos) {
-            try {
-              song = {
-                title: video.title,
-                duration: video.milis_length,
-                description: "",
-                url: video.url,
-                thumbnail: video.thumbnail_url,
-                author: {
-                  url: video.author.url,
-                  name: video.author.name,
-                  thumbnail: "",
-                },
-                requested: message.author.username + "#" + message.author.discriminator,
-              };
-              fullPlaylist.push(song);
+          try {
+              let playlist = await ytfps(args[0]);
+              playlistTitle = playlist.title;
+              playlistUrl = playlist.url;
+              
+              for (const video of playlist.videos) {
+                try {
+                  song = {
+                    title: video.title,
+                    duration: video.milis_length,
+                    description: "",
+                    url: video.url,
+                    thumbnail: video.thumbnail_url,
+                    author: {
+                      url: video.author.url,
+                      name: video.author.name,
+                      thumbnail: "",
+                    },
+                    requested: message.author.username + "#" + message.author.discriminator,
+                  };
+                  fullPlaylist.push(song);
+                } catch (error) {
+                  continue;
+                }
+              }
             } catch (error) {
-              continue;
+              let playlist = await play.playlist_info(args[0], {
+                incomplete: true,
+              });
+              if (args[0].includes("playlist") && playlist.link) {
+                playlist = await play.playlist_info(playlist.link, {
+                  incomplete: true,
+                });
+              }
+              playlistTitle = playlist.title;
+              playlistUrl = playlist.url;
+            
+              for (const video of playlist.videos) {
+                try {
+                  song = {
+                    title: video.title,
+                    duration: video.durationInSec * 1000,
+                    description: "",
+                    url: video.url,
+                    thumbnail: video.thumbnails[0].url,
+                    author: {
+                      url: video.channel.url,
+                      name: video.channel.name,
+                      thumbnail: "",
+                    },
+                    requested: message.author.username + "#" + message.author.discriminator,
+                  };
+                  fullPlaylist.push(song);
+                } catch (error) {
+                  continue;
+                }
+              }
             }
+          } else {
+            return sendMessage(message.channel, "Cannot load this type of url!");
           }
         } else {
-
-          return sendMessage(message.channel, "Cannot load this type of url!");
-        }
-      } else {
         const video_finder = async (query) => {
           const video_result = await ytSearch(query);
           return video_result.videos.length > 1 ? video_result.videos[0] : null;
         };
-
+        
         const video = await video_finder(args.join(" "));
         if (video) {
           const song_info = await ytdl.getInfo(video.url);
@@ -183,3 +216,4 @@ function isValidHttpUrl(string) {
 
   return url.protocol === "http:" || url.protocol === "https:";
 }
+
