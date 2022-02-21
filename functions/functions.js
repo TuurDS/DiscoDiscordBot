@@ -92,6 +92,9 @@ const video_player = async (client, message, song, queue, seekTo = -1) => {
         }
 
         if (!server_queue.audio_player) {
+            play.setToken({
+                useragent: ['disco-discordbot-tds']
+           }) 
             const player = createAudioPlayer();
             server_queue.audio_player = player;
             server_queue.audio_player.on("error", (error) => {
