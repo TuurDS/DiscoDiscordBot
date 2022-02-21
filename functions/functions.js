@@ -143,12 +143,12 @@ const video_player = async (client, message, song, queue, seekTo = -1) => {
                 server_queue.errors.previousInARowMessage.delete();
                 server_queue.errors.previousInARowMessage = await sendMessage(message.channel, `an error with **${server_queue.errors.count}** videos in a row occurred, Trying to skip !`);
                 console.log("error in functions video_player\n", error);
-                sendErrorMessage(client, `**[${server_queue.currentSong}]** [${server_queue.songs[server_queue.currentSong+1].title}](${server_queue.songs[server_queue.currentSong].url}):\n${error}`);
+                await sendErrorMessage(client, `**[${server_queue.currentSong}]** [${server_queue.songs[server_queue.currentSong+1].title}](${server_queue.songs[server_queue.currentSong].url}):\n${error}`);
             } else {
                 server_queue.errors.count++;
                 server_queue.errors.previousInARowMessage = await sendMessage(message.channel, `an error with **${server_queue.errors.count}** video in a row occurred, Trying to skip !`);
                 console.log("error in functions video_player\n", error);
-                sendErrorMessage(client, `**[${server_queue.currentSong}]** [${server_queue.songs[server_queue.currentSong+1].title}](${server_queue.songs[server_queue.currentSong].url}):\n${error}`);
+                await sendErrorMessage(client, `**[${server_queue.currentSong}]** [${server_queue.songs[server_queue.currentSong+1].title}](${server_queue.songs[server_queue.currentSong].url}):\n${error}`);
             }
             video_player(client, message, fetchNextSong(queue.get(message.guild.id)), queue);
         }
