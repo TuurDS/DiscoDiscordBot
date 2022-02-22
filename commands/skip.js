@@ -17,6 +17,9 @@ module.exports = {
       let server_queue = queue.get(message.guild.id);
       if (!message.member.voice.channel) return sendMessage(message.channel, "You need to be in a channel to execute this command!");
       if (server_queue && server_queue.nowplaying == null) {
+        if (!server_queue){
+          return sendMessage(message.channel, `There are no songs in queue 😔`);
+        }
         if (!server_queue || !server_queue.songs || server_queue.songs.length == 0) {
           return sendMessage(message.channel, `There are no songs in queue 😔`);
         }
