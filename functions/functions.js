@@ -94,7 +94,7 @@ const video_player = async (client, message, song, queue, seekTo = -1) => {
         if (!server_queue.audio_player) {
             play.setToken({
                 useragent: ['disco-discordbot-tds']
-           }) 
+            })
             const player = createAudioPlayer();
             server_queue.audio_player = player;
             server_queue.audio_player.on("error", (error) => {
@@ -125,7 +125,11 @@ const video_player = async (client, message, song, queue, seekTo = -1) => {
         server_queue.nowplaying = song;
         if (!withSeek) {
             if (server_queue.previousMessage) {
-                server_queue.previousMessage.delete();
+                try {
+                    server_queue.previousMessage.delete();
+                } catch (error) {
+                    console.log(error);
+                }
             }
             const msg = await sendMessage(server_queue.text_channel, `🎶 Now playing **[${server_queue.currentSong + 1}]**  [${song.title}](${song.url})`, "ORANGE");
             server_queue.previousMessage = msg;
@@ -143,15 +147,19 @@ const video_player = async (client, message, song, queue, seekTo = -1) => {
             server_queue.errors.responseDataErrorCount = 0;
             if (server_queue.errors.count > 0) {
                 server_queue.errors.count++;
-                server_queue.errors.previousInARowMessage.delete();
+                try {
+                    server_queue.errors.previousInARowMessage.delete();
+                } catch (error) {
+                    console.log(error);
+                }
                 server_queue.errors.previousInARowMessage = await sendMessage(message.channel, `an error with **${server_queue.errors.count}** videos in a row occurred, Trying to skip !`);
                 console.log("error in functions video_player\n", error);
-                await sendErrorMessage(client, `**[${server_queue.currentSong}]** [${server_queue.songs[server_queue.currentSong+1].title}](${server_queue.songs[server_queue.currentSong].url}):\n${error}`);
+                await sendErrorMessage(client, `**[${server_queue.currentSong}]** [${server_queue.songs[server_queue.currentSong + 1].title}](${server_queue.songs[server_queue.currentSong].url}):\n${error}`);
             } else {
                 server_queue.errors.count++;
                 server_queue.errors.previousInARowMessage = await sendMessage(message.channel, `an error with **${server_queue.errors.count}** video in a row occurred, Trying to skip !`);
                 console.log("error in functions video_player\n", error);
-                await sendErrorMessage(client, `**[${server_queue.currentSong}]** [${server_queue.songs[server_queue.currentSong+1].title}](${server_queue.songs[server_queue.currentSong].url}):\n${error}`);
+                await sendErrorMessage(client, `**[${server_queue.currentSong}]** [${server_queue.songs[server_queue.currentSong + 1].title}](${server_queue.songs[server_queue.currentSong].url}):\n${error}`);
             }
             video_player(client, message, fetchNextSong(queue.get(message.guild.id)), queue);
         }
@@ -198,14 +206,18 @@ const sendSelfDestructMessage = async (channel, returnMessage, color = "F70000",
             .setColor(color)
             .setDescription(returnMessage)
             .setFooter({
-                text: `this message will self destruct in ${timeInMs/1000}seconds`,
+                text: `this message will self destruct in ${timeInMs / 1000}seconds`,
             });
 
         const message = await channel.send({
             embeds: [embed],
         });
         setTimeout(() => {
-            message.delete()
+            try {
+                message.delete()
+            } catch (error) {
+                console.log(error);
+            }
         }, timeInMs);
     } catch (error) {
         console.error("error in functions sendMessage\n\n", error);

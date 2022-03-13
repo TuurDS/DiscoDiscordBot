@@ -31,30 +31,35 @@ module.exports = {
       let playlistTitle = {};
       let playlistUrl = "";
       let PlaylistLoadingMessage = null;
+      let type = null;
+
 
       if (isValidHttpUrl(args[0])) {
-        if (play.yt_validate(args[0]) === "video") {
-          const song_info = await ytdl.getInfo(args[0]);
-          song = {
-            title: song_info.videoDetails.title,
-            duration: parseInt(song_info.videoDetails.lengthSeconds) * 1000,
-            description: song_info.videoDetails.description || "wasnt able to fetch!",
-            url: song_info.videoDetails.video_url,
-            thumbnail: song_info.videoDetails.thumbnails[0].url,
-            author: {
-              url: song_info.videoDetails.author.channel_url,
-              name: song_info.videoDetails.author.name,
-              thumbnail: song_info.videoDetails.author.thumbnails[0].url,
-            },
-            requested: message.author.username + "#" + message.author.discriminator,
-          };
-        } else if (play.yt_validate(args[0]) === "playlist") {
-          PlaylistLoadingMessage = await sendMessage(message.channel, "Playlist loading...", "ORANGE");
-          try {
+        type = await isValidYoutubeUrl(args[0]);
+
+        if (!play.sp_validate(args[0])) {
+          if (type === "video") {
+            const song_info = await ytdl.getInfo(args[0]);
+            song = {
+              title: song_info.videoDetails.title,
+              duration: parseInt(song_info.videoDetails.lengthSeconds) * 1000,
+              description: song_info.videoDetails.description || "wasnt able to fetch!",
+              url: song_info.videoDetails.video_url,
+              thumbnail: song_info.videoDetails.thumbnails[0].url,
+              author: {
+                url: song_info.videoDetails.author.channel_url,
+                name: song_info.videoDetails.author.name,
+                thumbnail: song_info.videoDetails.author.thumbnails[0].url,
+              },
+              requested: message.author.username + "#" + message.author.discriminator,
+            };
+          } else if (type === "playlist") {
+            PlaylistLoadingMessage = await sendMessage(message.channel, "Playlist loading...", "ORANGE");
+            try {
               let playlist = await ytfps(args[0]);
               playlistTitle = playlist.title;
               playlistUrl = playlist.url;
-              
+
               for (const video of playlist.videos) {
                 try {
                   song = {
@@ -86,7 +91,7 @@ module.exports = {
               }
               playlistTitle = playlist.title;
               playlistUrl = playlist.url;
-            
+
               for (const video of playlist.videos) {
                 try {
                   song = {
@@ -112,11 +117,44 @@ module.exports = {
             return sendMessage(message.channel, "Cannot load this type of url!");
           }
         } else {
+          let spotifyType = play.sp_validate(args[0]);
+
+          if (play.is_expired()) {
+            await play.refreshToken() // This will check if access token has expired or not. If yes, then refresh the token.
+          }
+
+          if (spotifyType === "track") {
+            let sp_data = await play.spotify(args[0]);
+            let searched = await play.search(`${sp_data.name}`, {
+              limit: 1
+            });
+            let video = searched[0];
+            song = {
+              title: video.title,
+              duration: video.durationInSec * 1000,
+              description: "",
+              url: video.url,
+              thumbnail: video.thumbnails[0].url,
+              author: {
+                url: video.channel.url,
+                name: video.channel.name,
+                thumbnail: "",
+              },
+              requested: message.author.username + "#" + message.author.discriminator,
+            };
+          } else if (spotifyType === "playlist" || spotifyType === "album") {
+            return sendMessage(message.channel, "Cannot load this type of url yet (coming soon)!");
+          } else {
+            return sendMessage(message.channel, "Cannot load this type of url!");
+          }
+        }
+
+      } else {
         const video_finder = async (query) => {
           const video_result = await ytSearch(query);
           return video_result.videos.length > 1 ? video_result.videos[0] : null;
         };
-        
+
         const video = await video_finder(args.join(" "));
         if (video) {
           const song_info = await ytdl.getInfo(video.url);
@@ -158,9 +196,13 @@ module.exports = {
         };
         queue.set(message.guild.id, queue_constructor);
         server_queue = queue.get(message.guild.id);
-        if (play.yt_validate(args[0]) === "playlist") {
+        if (type === "playlist") {
           server_queue.songs = server_queue.songs.concat(fullPlaylist);
-          PlaylistLoadingMessage.delete();
+          try {
+            PlaylistLoadingMessage.delete();
+          } catch (error) {
+            console.log(error);
+          }
           sendMessage(message.channel, `👍 Playlist [${playlistTitle}](${playlistUrl}) with **\`${fullPlaylist.length}\`** songs added to queue!`, "GREEN");
         } else {
           server_queue.songs.push(song);
@@ -171,9 +213,13 @@ module.exports = {
         server_queue.voice_channel = voice_channel;
         server_queue.text_channel = message.channel;
 
-        if (play.yt_validate(args[0]) === "playlist") {
+        if (type === "playlist") {
           server_queue.songs = server_queue.songs.concat(fullPlaylist);
-          PlaylistLoadingMessage.delete();
+          try {
+            PlaylistLoadingMessage.delete();
+          } catch (error) {
+            console.log(error);
+          }
           sendMessage(message.channel, `👍 Playlist [${playlistTitle}](${playlistUrl}) with **\`${fullPlaylist.length}\`** songs added to queue!`, "GREEN");
         } else {
           server_queue.songs.push(song);
@@ -207,13 +253,29 @@ module.exports = {
 
 function isValidHttpUrl(string) {
   let url;
-
   try {
     url = new URL(string);
   } catch (_) {
     return false;
   }
-
   return url.protocol === "http:" || url.protocol === "https:";
 }
 
+async function isValidYoutubeUrl(url) {
+  try {
+    let type = null;
+
+    type = play.yt_validate(url);
+    if (!type) {
+      let playlist = await play.playlist_info(url, {
+        incomplete: true,
+      });
+      if (playlist) {
+        type = playlist.type;
+      }
+    }
+    return type;
+  } catch (error) {
+    return false;
+  }
+}
