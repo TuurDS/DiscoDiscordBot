@@ -3,6 +3,7 @@ const {
 } = require("../functions/functions");
 module.exports = {
   name: "repeat",
+  aliases: ["rp"],
   description: "toggles repeating the music queue!",
   async execute(client, message, cmd, args, Discord, queue) {
     try {

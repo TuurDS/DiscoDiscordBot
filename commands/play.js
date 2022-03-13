@@ -143,7 +143,7 @@ module.exports = {
               requested: message.author.username + "#" + message.author.discriminator,
             };
           } else if (spotifyType === "playlist" || spotifyType === "album") {
-
+            return sendMessage(message.channel, "Cannot load this type of url yet (coming soon)!");
           } else {
             return sendMessage(message.channel, "Cannot load this type of url!");
           }
@@ -198,7 +198,11 @@ module.exports = {
         server_queue = queue.get(message.guild.id);
         if (type === "playlist") {
           server_queue.songs = server_queue.songs.concat(fullPlaylist);
-          PlaylistLoadingMessage.delete();
+          try {
+            PlaylistLoadingMessage.delete();
+          } catch (error) {
+            console.log(error);
+          }
           sendMessage(message.channel, `👍 Playlist [${playlistTitle}](${playlistUrl}) with **\`${fullPlaylist.length}\`** songs added to queue!`, "GREEN");
         } else {
           server_queue.songs.push(song);
@@ -211,7 +215,11 @@ module.exports = {
 
         if (type === "playlist") {
           server_queue.songs = server_queue.songs.concat(fullPlaylist);
-          PlaylistLoadingMessage.delete();
+          try {
+            PlaylistLoadingMessage.delete();
+          } catch (error) {
+            console.log(error);
+          }
           sendMessage(message.channel, `👍 Playlist [${playlistTitle}](${playlistUrl}) with **\`${fullPlaylist.length}\`** songs added to queue!`, "GREEN");
         } else {
           server_queue.songs.push(song);
