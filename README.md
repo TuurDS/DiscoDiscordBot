@@ -29,3 +29,4 @@ These are all the commands currently in use type -help in any chat to see all th
 -seek [number of seconds]
 -move [trackposition],[new position]
 ```
+
