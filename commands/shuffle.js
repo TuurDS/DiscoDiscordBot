@@ -11,6 +11,7 @@ module.exports = {
       if (!voice_channel) return sendMessage(message.channel, "You need to be in a channel to execute this command!");
 
       let server_queue = queue.get(message.guild.id);
+      if (!server_queue) return sendMessage(message.channel, "**There are no tracks to be shuffled!**");
       if (!server_queue.songs) return sendMessage(message.channel, "**There are no tracks to be shuffled!**");
       if (server_queue.songs.length < 2) return sendMessage(message.channel, "**There are not enough tracks to be shuffle the queue (min 2)!**");
       shuffle(server_queue.songs);

@@ -17,7 +17,7 @@ module.exports = {
             if (!args[0]) return sendMessage(message.channel, "please enter the amount you want to rewind!");
             if (isNaN(args[0])) return sendMessage(message.channel, "please enter a valid number!");
             if (args[0] < 1 || args[0] > server_queue.songs[server_queue.currentSong].duration / 1000 - 1)
-                return sendMessage(message.channel, `please enter a number between **1** and **${server_queue.songs[server_queue.currentSong].duration / 1000 - 1}**!`);
+                return sendMessage(message.channel, `please enter a number between **1** and **${server_queue.songs[server_queue.currentSong].duration / 1000 - 1}**`);
             let offset = (server_queue.audio_player._state.resource.playbackDuration + server_queue.currentOffset) / 1000 - parseInt(args[0]);
             if (offset < 0) {
                 offset = 0;
