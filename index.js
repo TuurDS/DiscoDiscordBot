@@ -18,6 +18,7 @@ try {
   ["command_handler", "event_handler"].forEach((e) => {
     require(`./handlers/${e}`)(client, Discord);
   });
+  const test = process.env;
 
   client.login(process.env.DISCORD_TOKEN);
 } catch (error) {
