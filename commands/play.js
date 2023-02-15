@@ -216,4 +216,3 @@ function isValidHttpUrl(string) {
 
   return url.protocol === "http:" || url.protocol === "https:";
 }
-
