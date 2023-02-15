@@ -15,6 +15,14 @@ try {
   client.commands = new Discord.Collection();
   client.events = new Discord.Collection();
 
+  const { Player } = require("discord-music-player");
+  
+  const player = new Player(client, {
+      leaveOnEmpty: false, // This options are optional.
+  });
+  
+  client.player = player;
+
   ["command_handler", "event_handler"].forEach((e) => {
     require(`./handlers/${e}`)(client, Discord);
   });
