@@ -17,12 +17,11 @@ module.exports = {
 
       if (!permissions.has("CONNECT")) return sendMessage(message.channel, "You dont have the correct permissions");
       if (!permissions.has("SPEAK")) return sendMessage(message.channel, "You dont have the correct permissions");
-
-      const connection = joinVoiceChannel({
-        channelId: voiceChannel.id,
-        guildId: message.guild.id,
-        adapterCreator: message.guild.voiceAdapterCreator,
-      });
+      
+      const queue = client.player.getQueue(message.guild.id) || client.player.createQueue(message.guild.id);
+      
+      queue.join(voiceChannel);
+      message.react("👍");
 
     } catch (error) {
       console.log(error);

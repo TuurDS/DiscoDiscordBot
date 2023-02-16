@@ -6,7 +6,7 @@ const Discord = require("discord.js");
 module.exports = {
   name: "queue",
   description: "shows the current queue!",
-  async execute(client, message, cmd, args, Discord, queue) {
+  async execute(client, message, cmd, args) {
     try {
       const voice_channel = message.member.voice.channel;
       if (!voice_channel)

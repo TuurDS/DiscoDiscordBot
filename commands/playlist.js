@@ -23,7 +23,7 @@ const {
         //CODE
 
         PlaylistLoadingMessage = await sendMessage(message.channel, "Playlist loading...", "ORANGE");
-        let queue = client.player.createQueue(message.guild.id);
+        const queue = client.player.getQueue(message.guild.id) || client.player.createQueue(message.guild.id);
         await queue.join(message.member.voice.channel);
         let song = await queue.playlist(args.join(' ')).catch(err => {
             console.log(err);
@@ -32,7 +32,7 @@ const {
         });
 
         PlaylistLoadingMessage.delete();
-        sendMessage(message.channel, `👍 Playlist [${song.name}](${song.url}) with **\`${song.songs.length}\`** songs added to queue!`, "GREEN");
+        sendMessage(message.channel, `Queued **\`${song.songs.length}\`** songs from [${song.name}](${song.url})`, "GREEN");
 
         queue.setData({
             channel: message.channel

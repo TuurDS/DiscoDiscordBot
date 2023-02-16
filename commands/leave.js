@@ -8,11 +8,14 @@ const {
 module.exports = {
   name: "leave",
   description: "bot leaves vc",
-  async execute(client, message, cmd, args, Discord, queue) {
+  async execute(client, message, cmd, args) {
     try {
-      const channel = message.member.voice.channel;
-      const connection = getVoiceConnection(channel.guild.id);
-      safeExit(queue, message.guild.id);
+
+      const queue = client.player.getQueue(message.guild.id) || client.player.createQueue(message.guild.id);
+      queue.leave();
+      //leave a checkmark reaction on the message
+      message.react("👋");
+
     } catch (error) {
       console.log(error);
       sendMessage(message.channel, "**an error occurred!**");
