@@ -1,4 +1,4 @@
-# DiscoDiscordBot
+# DiscoDiscordBot (WIP)
 ## adding the Bot
 you can add the bot by using this link and then and then authorizing the bot to the server you want.
 https://discord.com/oauth2/authorize?client_id=936163530250522645&scope=bot&permissions=8
